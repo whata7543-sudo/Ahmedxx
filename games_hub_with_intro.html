@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مركز الألعاب</title>
+<style>
+:root{--bg:#faf8f5;--card:#fff;--text:#2b2620;--accent:#b5643a;--muted:#8a8478;--border:#e6e0d6;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1c1a17;--card:#26231f;--text:#f0ece4;--accent:#e0895a;--muted:#a39a8c;--border:#3a352e;}}
+:root[data-theme="dark"]{--bg:#1c1a17;--card:#26231f;--text:#f0ece4;--accent:#e0895a;--muted:#a39a8c;--border:#3a352e;}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Tahoma,Arial,sans-serif;
+  padding:20px;padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));}
+.wrap{max-width:460px;margin:0 auto;}
+h1{text-align:center;font-size:1.3rem;margin-bottom:16px;}
+.tabs{display:flex;gap:8px;margin-bottom:16px;}
+.tab{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card);
+  color:var(--text);text-align:center;cursor:pointer;font-size:0.85rem;font-weight:600;}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 22px;text-align:center;}
+.panel{display:none;}
+.panel.active{display:block;}
+input{width:100%;padding:12px;font-size:1.1rem;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);text-align:center;margin-bottom:10px;}
+button.action{width:100%;padding:12px;font-size:1rem;border:none;border-radius:10px;background:var(--accent);
+  color:#fff;cursor:pointer;font-weight:600;margin-top:6px;}
+.choices{display:flex;gap:10px;margin-top:14px;}
+.choice{flex:1;padding:16px 0;font-size:1.8rem;border-radius:12px;border:1px solid var(--border);
+  background:var(--bg);cursor:pointer;}
+.choice:active{background:var(--accent);}
+#msg,#rps-msg,#quiz-msg{min-height:26px;margin:12px 0;font-weight:600;}
+.small{color:var(--muted);font-size:0.85rem;}
+.hidden{display:none;}
+.opt{display:block;width:100%;padding:12px;margin:6px 0;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);cursor:pointer;text-align:right;font-size:0.95rem;}
+.opt.correct{background:#4caf7d;color:#fff;border-color:#4caf7d;}
+.opt.wrong{background:#c25b5b;color:#fff;border-color:#c25b5b;}
+.tabs{flex-wrap:wrap;}
+.tab{min-width:70px;}
+.xo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;}
+.xo-cell{aspect-ratio:1;font-size:2rem;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0;}
+.mem-cell{aspect-ratio:1;font-size:1.6rem;border-radius:10px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.mem-cell.matched{background:#4caf7d33;border-color:#4caf7d;}
+.scramble-word{font-size:2rem;letter-spacing:6px;font-weight:700;margin:16px 0;color:var(--accent);}
+.simon-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0;}
+.simon-cell{aspect-ratio:1;border-radius:12px;cursor:pointer;opacity:0.55;}
+.simon-cell.lit{opacity:1;}
+.simon-cell[data-c="0"]{background:#c25b5b;} .simon-cell[data-c="1"]{background:#4caf7d;}
+.simon-cell[data-c="2"]{background:#e0c25a;} .simon-cell[data-c="3"]{background:#5a8ee0;}
+#reaction-box{padding:40px 0;border-radius:12px;margin:14px 0;font-weight:700;cursor:pointer;}
+#snake-canvas{background:var(--bg);border:1px solid var(--border);border-radius:10px;touch-action:none;max-width:100%;}
+.snake-controls{display:grid;grid-template-columns:repeat(3,50px);gap:6px;justify-content:center;margin-top:10px;}
+.snake-btn{padding:10px 0;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:1.2rem;cursor:pointer;}
+.mole-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0;}
+.mole-hole{aspect-ratio:1;border-radius:50%;background:var(--bg);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:1.6rem;cursor:pointer;}
+.mole-hole.up{background:var(--accent);}
+#math-problem{font-size:1.8rem;font-weight:700;margin:14px 0;}
+.wheel{width:180px;height:180px;border-radius:50%;margin:16px auto;border:6px solid var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700;transition:transform 3s cubic-bezier(.2,.9,.3,1);}
+.dice-row{display:flex;gap:14px;justify-content:center;margin:16px 0;font-size:2.5rem;}
+.bubble-area{position:relative;height:220px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin:14px 0;overflow:hidden;}
+.bubble{position:absolute;border-radius:50%;background:var(--accent);cursor:pointer;}
+#typing-target{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px;margin:12px 0;font-size:0.95rem;}
+.numgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0;}
+.numcell{aspect-ratio:1;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;}
+.numcell.found{background:#4caf7d;color:#fff;}
+.card-row{display:flex;gap:20px;justify-content:center;margin:16px 0;font-size:2.2rem;}
+.card-box{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:16px 10px;min-width:70px;}
+.stroop-word{font-size:2.2rem;font-weight:800;margin:16px 0;}
+.color-opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.color-opt{padding:14px;border-radius:10px;border:1px solid var(--border);background:var(--bg);color:var(--text);cursor:pointer;}
+.hl-row{display:flex;justify-content:center;gap:10px;margin:14px 0;font-size:2rem;}
+.hl-btn{padding:10px 22px;border-radius:10px;border:none;cursor:pointer;font-weight:700;}
+.tap-target{width:70px;height:70px;border-radius:50%;background:var(--accent);position:absolute;cursor:pointer;}
+.tap-area{position:relative;height:220px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin:14px 0;}
+.emoji-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0;}
+.emoji-cell{aspect-ratio:1;font-size:1.6rem;border-radius:10px;border:1px solid var(--border);background:var(--bg);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.emoji-cell.odd-found{background:#4caf7d;}
+
+/* ---- Intro Screen ---- */
+.intro-logo{display:block;width:min(100%,360px);height:auto;margin:0 auto 18px;border-radius:10px;}
+
+#intro-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(circle at top,#d9895d 0%,var(--bg) 55%);}
+.intro-card{width:min(440px,100%);padding:38px 24px;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:24px;box-shadow:0 18px 60px #0002;animation:introIn .7s ease;}
+.intro-icon{font-size:4.5rem;margin-bottom:8px;animation:floatIcon 2s ease-in-out infinite;}
+.intro-card h2{font-size:2rem;margin:8px 0;color:var(--accent);}
+.intro-card p{font-size:1rem;line-height:1.8;color:var(--muted);margin:12px 0 24px;}
+#start-games{width:100%;padding:15px;border:0;border-radius:14px;background:var(--accent);color:#fff;font-size:1.1rem;font-weight:700;cursor:pointer;box-shadow:0 8px 20px #0002;}
+#start-games:active{transform:scale(.98);}
+#intro-screen.hide{animation:introOut .45s ease forwards;pointer-events:none;}
+@keyframes introIn{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes introOut{to{opacity:0;visibility:hidden;transform:scale(1.04)}}
+@keyframes floatIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+</style>
+</head>
+<body>
+<div id="intro-screen">
+  <div class="intro-card">
+    <img class="intro-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAABQAAAAG4CAIAAACVUN2rAAAWfmNhQlgAABZ+anVtYgAAAB5qdW1kYzJwYQARABCAAACqADibcQNjMnBhAAAAFlhqdW1iAAAAR2p1bWRjMm1hABEAEIAAAKoAOJtxA3VybjpjMnBhOjFmMDA0ZjU4LWUzMTQtNDQyMy1iNTYzLWQxYTEwNmNmOWI5MAAAAAOTanVtYgAAAClqdW1kYzJhcwARABCAAACqADibcQNjMnBhLmFzc2VydGlvbnMAAAAAuGp1bWIAAABEanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5pbmdyZWRpZW50LnYzAAAAABhjMnNoel9NciFYhoS4ZlgUCZMqLgAAAGxjYm9yo2lkYzpmb3JtYXRpaW1hZ2UvcG5namluc3RhbmNlSUR4LHhtcDppaWQ6YjU2ZWQ5YTItNTQ2Zi00YWM1LTk1YzEtOTA3NTBlMDVhNzU2bHJlbGF0aW9uc2hpcGhwYXJlbnRPZgAAAeJqdW1iAAAAQWp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuYWN0aW9ucy52MgAAAAAYYzJzaP4GBKY+N+LaKp8pLk3n2FcAAAGZY2JvcqJnYWN0aW9uc4KiZmFjdGlvbmtjMnBhLm9wZW5lZGpwYXJhbWV0ZXJzoWtpbmdyZWRpZW50c4GiY3VybHgtc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5pbmdyZWRpZW50LnYzZGhhc2hYIG82hpMRHVjqLdYfk0s1hbbuTYkpr1WnaqJjlWeEoPIfpGZhY3Rpb254HWNvbS5hbnRocm9waWMuY2xhdWRlLnByb3ZpZGVkanBhcmFtZXRlcnOheB9jb20uYW50aHJvcGljLm9yaWdpbi1jb25maWRlbmNlZ3Vua25vd25rZGVzY3JpcHRpb254ZkNsYXVkZSBwcm92aWRlZCB0aGlzIGZpbGUgYXQgdGhlIHJlcXVlc3Qgb2YgYSB1c2VyIGFuZCBtYXkgaGF2ZSBjcmVhdGVkIG9yIG1vZGlmaWVkIHRoZSBmaWxlIGNvbnRlbnRzLm1zb2Z0d2FyZUFnZW50oWRuYW1lZkNsYXVkZXJhbGxBY3Rpb25zSW5jbHVkZWT1AAAAyGp1bWIAAABAanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5oYXNoLmRhdGEAAAAAGGMyc2husPDRN81b3NppIRx0fIPgAAAAgGNib3KlY2FsZ2ZzaGEyNTZjcGFkTQAAAAAAAAAAAAAAAABkaGFzaFggMAacB8VJGw7lIggXJNXJuqKj15XY6tk5jTxYmeWPSwtkbmFtZW5qdW1iZiBtYW5pZmVzdGpleGNsdXNpb25zgaJlc3RhcnQYIWZsZW5ndGgZFooAAAI+anVtYgAAACdqdW1kYzJjbAARABCAAACqADibcQNjMnBhLmNsYWltLnYyAAAAAg9jYm9ypWNhbGdmc2hhMjU2aXNpZ25hdHVyZXhNc2VsZiNqdW1iZj0vYzJwYS91cm46YzJwYToxZjAwNGY1OC1lMzE0LTQ0MjMtYjU2My1kMWExMDZjZjliOTAvYzJwYS5zaWduYXR1cmVqaW5zdGFuY2VJRHgseG1wOmlpZDo3OWJkM2U0Ni1lZjYwLTQ1MzItOWQzYi0yNmVlMzQ1YmVlYjFyY3JlYXRlZF9hc3NlcnRpb25zg6JjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFggbzaGkxEdWOot1h+TSzWFtu5NiSmvVadqomOVZ4Sg8h+iY3VybHgqc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5hY3Rpb25zLnYyZGhhc2hYIFZC4qjUFxYRskzaE0FsV6VDBHsLEmLleMeLkvQhFpFhomN1cmx4KXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaGFzaC5kYXRhZGhhc2hYIFFeZ9kAQPGsvJ6FBmGDfSiIDGM5rlFB0r8ae3CzfCKsdGNsYWltX2dlbmVyYXRvcl9pbmZvo2RuYW1lb0FudGhyb3BpYyBGaWxlc2d2ZXJzaW9uZTEuMC4wa3NwZWNWZXJzaW9uZTIuNC4wAAAQOGp1bWIAAAAoanVtZGMyY3MAEQAQgAAAqgA4m3EDYzJwYS5zaWduYXR1cmUAAAAQCGNib3LShFkCEqIBJhghWQIKMIICBjCCAY2gAwIBAgIUQOWgCu7COdC+uIP6BkIFPWdVEwAwCgYIKoZIzj0EAwMwSTEXMBUGA1UEChMOQW50aHJvcGljLCBQQkMxLjAsBgNVBAMTJUFudGhyb3BpYyBDb250ZW50IENyZWRlbnRpYWxzIFJvb3QgQ0EwHhcNMjYwODA3MTg0MzU2WhcNMjgwODA2MTk0MzU2WjBEMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEpMCcGA1UEAxMgQW50aHJvcGljIENsYXVkZSBDb250ZW50IFNpZ25pbmcwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAASYegpry1AYBRTVNL1CpTlbROnY3dey+UrsF9C3phYrATN3ZHf93Mo8RQN0KOUuOn19P4oWNFWe5n2/She9N7eTo1gwVjAOBgNVHQ8BAf8EBAMCB4AwFQYDVR0lBA4wDAYKKwYBBAGD6F4CATAMBgNVHRMBAf8EAjAAMB8GA1UdIwQYMBaAFM5R4gSBTmRbI/jjxM+aPpzB11zCMAoGCCqGSM49BAMDA2cAMGQCMDFzHRSeAXrSy1WOzkbhPZ6Km2wGTmZ/2gK18k8BQGXyqz88Rdrz6CTX9flAnYNVxgIwcF9c3fVhqmJKpi+UhasNUMko69cyX6STPfta3Q8EjyzDjzoyrol46FP6VFHhvUcJoWNwYWRZDZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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qqta9e+HHXrQ1FuvS9+5Xn/jP8eNmvDNf152yYXf/tb49J0uCIK33nrn2OOS2Fntxz869efnnBniRF99tfrqa/4+/c67Nmwoq/uV++836AenfnfwEYds6wXPPvfCt77zw2/elHAOOnC/226+tnHj9D4V5oUX533xxbKRxw9LVYcVFZU9eu25rZ+m5PvZQRd9svzr/6nIPefYtmcc2Tp6z/Uj28cfNPQUDrr000UrN9fPuSDnWQEmpHSkTQkWIIS//O3Gn537yxDhs2XLFhdfdP6rLz095arfjRl9XN89+rRq1bKwsLBx48bt27fbpffOw489+tJLfvHkY/fOmnFLHen36WeeO/nUMyKm3yAInnv+xR+e/rO07oS3du3an5//6y2J724EQG5J+gny5IzcqxmeP6W3CA3E0+y75n766fw//+nybt26JNu2WbPSMaOPGzP6uHCnnjpt5q9/c/nmzalZnnr8iacnTD71hr9f3bJli5R0uLXyiorvn3bW/AULU94zANnCCjAA5IJXXn3jqKGjp02fFe6RQiEsX77itB+d/YtfXZqq9FvlhRfnjRg5/q233klhn0EQbNq06Sdn/vzZ515IbbcAZBcBmDDSt9BqCRcgtHXr119w4W+OOnb04088ndYTbdhQdsONtx46ePgDDz2ajv7nL1h43Kjxl195dVnZxpR0uHz5inETTr7/wbSMFoAsIgDHVO7VP1fJ1XkBJO6DDz46+ZQzBh898rbbZ6R8u+PPPlt81ZS/7XfgkZf+7o9p3Uu5vKLib3//x4GHHnPTLdOixODKysqp02YeOnj4K6++kbrRAZCt7AIdU1GCYj0s0mb48ACyRXFx0UEH7HfEEYcefthBXTqH/D9+RUXlO++89/S/nn/yqWdefe3N+t9BqkWL5iOGHTN61PAB/fdK/IHbK75cOefu+269fcaiRYvTOjwAsogAHEeZ/7ShzB8hQNZp26Z13767795n127dunTq2KFTpw4tW7QoLi4uLi5q3LhxRWXl5k2by8rKvlq9etWqr5YtW7Fw4WfzFyx87/0P33r7nVSVIkdUWlq6z6ABA/rvuWPPHt27d23frl1JSZOSkiZBEKxfv2HtunVLlnzxyafz33//w3+/8PLb/33Xbs8AVCMAx1Hmx8vMHyEAAJB13ANMcuonW0qwAABAygnAsROHbaLiMEcAACBZ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" alt="Ahmedxxx">
+    <div class="intro-icon">🎮</div>
+    <h2>مرحبًا بك في مركز الألعاب!</h2>
+    <p>استعد للمتعة والتحدي مع مجموعة كبيرة من الألعاب الصغيرة. اختر لعبتك المفضلة وحاول تحطّم أرقامك القياسية! 🚀</p>
+    <button id="start-games">▶️ ابدأ اللعب</button>
+  </div>
+</div>
+<div class="wrap">
+<h1>🎮 مركز الألعاب</h1>
+<div class="tabs">
+  <div class="tab active" data-tab="guess">🎯 تخمين</div>
+  <div class="tab" data-tab="rps">✊ حجر ورقة مقص</div>
+  <div class="tab" data-tab="quiz">🧠 كويز</div>
+  <div class="tab" data-tab="xo">✖️⭕ إكس أو</div>
+  <div class="tab" data-tab="mem">🃏 الذاكرة</div>
+  <div class="tab" data-tab="scramble">🔤 فك الكلمة</div>
+  <div class="tab" data-tab="simon">🎵 سايمون</div>
+  <div class="tab" data-tab="react">⚡ سرعة رد الفعل</div>
+  <div class="tab" data-tab="snake">🐍 الثعبان</div>
+  <div class="tab" data-tab="mole">🔨 اضرب الخلد</div>
+  <div class="tab" data-tab="math">➕ حساب سريع</div>
+  <div class="tab" data-tab="wheel">🎡 عجلة الحظ</div>
+  <div class="tab" data-tab="dice">🎲 حرب النرد</div>
+  <div class="tab" data-tab="bubble">🫧 فرقع الفقاعات</div>
+  <div class="tab" data-tab="typing">⌨️ سرعة الكتابة</div>
+  <div class="tab" data-tab="numgrid">🔢 أوجد الرقم</div>
+  <div class="tab" data-tab="stroop">🎨 اختبار الألوان</div>
+  <div class="tab" data-tab="higher">📈 أعلى أم أقل</div>
+  <div class="tab" data-tab="tap">🎯 اضغط السريع</div>
+  <div class="tab" data-tab="odd">🧩 اوجد المختلف</div>
+  <div class="tab" data-tab="guessword">📝 خمّن الكلمة</div>
+</div>
+
+<div class="card">
+  <!-- GUESS -->
+  <div class="panel active" id="panel-guess">
+    <p class="small">خمّن رقمًا بين 1 و100</p>
+    <input id="guessInput" type="number" min="1" max="100" placeholder="أدخل رقمك">
+    <button class="action" id="guessBtn">تخمين</button>
+    <div id="msg"></div>
+    <div class="small" id="tries">المحاولات: 0</div>
+    <button class="action hidden" id="resetGuess" style="background:var(--muted);">لعبة جديدة</button>
+  </div>
+
+  <!-- RPS -->
+  <div class="panel" id="panel-rps">
+    <p class="small">اختر: حجر، ورقة، أو مقص</p>
+    <div class="choices">
+      <div class="choice" data-c="rock">🪨</div>
+      <div class="choice" data-c="paper">📄</div>
+      <div class="choice" data-c="scissors">✂️</div>
+    </div>
+    <div id="rps-msg"></div>
+    <div class="small" id="rps-score">أنت 0 - 0 الكمبيوتر</div>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="panel" id="panel-quiz">
+    <p class="small" id="quiz-progress">السؤال 1 من 5</p>
+    <p id="quiz-q" style="font-size:1.05rem;font-weight:600;min-height:50px;"></p>
+    <div id="quiz-opts"></div>
+    <div id="quiz-msg"></div>
+    <button class="action hidden" id="quiz-restart" style="background:var(--muted);">إعادة الكويز</button>
+  </div>
+
+  <!-- XO -->
+  <div class="panel" id="panel-xo">
+    <p class="small" id="xo-status">دورك (✖️) — العب ضد الكمبيوتر</p>
+    <div class="xo-grid" id="xo-grid"></div>
+    <button class="action" id="xo-reset" style="background:var(--muted);">لعبة جديدة</button>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="panel" id="panel-mem">
+    <p class="small" id="mem-status">طابق الأزواج المتشابهة</p>
+    <div class="mem-grid" id="mem-grid"></div>
+    <button class="action" id="mem-reset" style="background:var(--muted);">لعبة جديدة</button>
+  </div>
+
+  <!-- SCRAMBLE -->
+  <div class="panel" id="panel-scramble">
+    <p class="small">رتّب الحروف لتكوين الكلمة الصحيحة</p>
+    <div class="scramble-word" id="scramble-word"></div>
+    <input id="scramble-input" type="text" placeholder="اكتب الكلمة">
+    <button class="action" id="scramble-check">تحقق</button>
+    <div id="scramble-msg" style="min-height:26px;margin-top:10px;font-weight:600;"></div>
+  </div>
+
+  <!-- SIMON -->
+  <div class="panel" id="panel-simon">
+    <p class="small" id="simon-status">اضغط ابدأ واحفظ التسلسل</p>
+    <div class="simon-grid">
+      <div class="simon-cell" data-c="0"></div>
+      <div class="simon-cell" data-c="1"></div>
+      <div class="simon-cell" data-c="2"></div>
+      <div class="simon-cell" data-c="3"></div>
+    </div>
+    <button class="action" id="simon-start">ابدأ</button>
+  </div>
+
+  <!-- REACTION -->
+  <div class="panel" id="panel-react">
+    <p class="small">اضغط عند تحول اللون للأخضر — بأسرع ما يمكن</p>
+    <div id="reaction-box" style="background:var(--border);">اضغط للبدء</div>
+    <div class="small" id="react-result"></div>
+  </div>
+
+  <!-- SNAKE -->
+  <div class="panel" id="panel-snake">
+    <p class="small" id="snake-status">النقاط: 0</p>
+    <canvas id="snake-canvas" width="240" height="240"></canvas>
+    <div class="snake-controls">
+      <div></div><div class="snake-btn" data-d="up">⬆️</div><div></div>
+      <div class="snake-btn" data-d="left">⬅️</div><div class="snake-btn" data-d="down">⬇️</div><div class="snake-btn" data-d="right">➡️</div>
+    </div>
+    <button class="action" id="snake-reset" style="background:var(--muted);">لعبة جديدة</button>
+  </div>
+
+  <!-- WHACK A MOLE -->
+  <div class="panel" id="panel-mole">
+    <p class="small" id="mole-status">الوقت: 20 | النقاط: 0</p>
+    <div class="mole-grid" id="mole-grid"></div>
+    <button class="action" id="mole-start">ابدأ</button>
+  </div>
+
+  <!-- QUICK MATH -->
+  <div class="panel" id="panel-math">
+    <p class="small" id="math-status">الوقت: 30 | النقاط: 0</p>
+    <div id="math-problem"></div>
+    <input id="math-input" type="number" placeholder="الإجابة">
+    <button class="action" id="math-start">ابدأ</button>
+  </div>
+
+  <!-- WHEEL -->
+  <div class="panel" id="panel-wheel">
+    <p class="small">أدخل خيارات مفصولة بفاصلة ودور العجلة</p>
+    <input id="wheel-input" type="text" placeholder="مثال: بيتزا, برجر, سوشي">
+    <div class="wheel" id="wheel-disc">🎡</div>
+    <button class="action" id="wheel-spin">دور العجلة</button>
+    <div class="small" id="wheel-result"></div>
+  </div>
+
+  <!-- DICE WAR -->
+  <div class="panel" id="panel-dice">
+    <p class="small" id="dice-score">أنت 0 - 0 الكمبيوتر</p>
+    <div class="dice-row"><span id="dice-you">🎲</span><span id="dice-cpu">🎲</span></div>
+    <button class="action" id="dice-roll">ارمِ النرد</button>
+    <div class="small" id="dice-msg"></div>
+  </div>
+
+  <!-- BUBBLE POP -->
+  <div class="panel" id="panel-bubble">
+    <p class="small" id="bubble-status">الوقت: 20 | النقاط: 0</p>
+    <div class="bubble-area" id="bubble-area"></div>
+    <button class="action" id="bubble-start">ابدأ</button>
+  </div>
+
+  <!-- TYPING SPEED -->
+  <div class="panel" id="panel-typing">
+    <p class="small">اكتب الجملة بأسرع وقت وبدون أخطاء</p>
+    <div id="typing-target"></div>
+    <input id="typing-input" type="text" placeholder="ابدأ الكتابة هنا">
+    <div class="small" id="typing-result"></div>
+    <button class="action" id="typing-reset" style="background:var(--muted);">جملة جديدة</button>
+  </div>
+
+  <!-- FIND NUMBER -->
+  <div class="panel" id="panel-numgrid">
+    <p class="small" id="numgrid-status">اضغط على الأرقام بالترتيب من 1 إلى 20</p>
+    <div class="numgrid" id="numgrid-grid"></div>
+    <button class="action" id="numgrid-reset" style="background:var(--muted);">لعبة جديدة</button>
+  </div>
+
+  <!-- STROOP -->
+  <div class="panel" id="panel-stroop">
+    <p class="small" id="stroop-status">اضغط على اسم <b>اللون</b> الذي تراه (وليس الكلمة المكتوبة)</p>
+    <div class="stroop-word" id="stroop-word"></div>
+    <div class="color-opts" id="stroop-opts"></div>
+    <div class="small" id="stroop-score">النقاط: 0</div>
+  </div>
+
+  <!-- HIGHER LOWER -->
+  <div class="panel" id="panel-higher">
+    <p class="small">خمّن هل الرقم التالي أعلى أم أقل</p>
+    <div class="hl-row"><span id="hl-current">--</span></div>
+    <div class="hl-row">
+      <button class="hl-btn" id="hl-lower" style="background:#c25b5b;color:#fff;">⬇️ أقل</button>
+      <button class="hl-btn" id="hl-higher" style="background:#4caf7d;color:#fff;">⬆️ أعلى</button>
+    </div>
+    <div class="small" id="hl-status">السلسلة: 0</div>
+  </div>
+
+  <!-- TAP TARGET -->
+  <div class="panel" id="panel-tap">
+    <p class="small" id="tap-status">الوقت: 15 | النقاط: 0</p>
+    <div class="tap-area" id="tap-area"></div>
+    <button class="action" id="tap-start">ابدأ</button>
+  </div>
+
+  <!-- ODD ONE OUT -->
+  <div class="panel" id="panel-odd">
+    <p class="small" id="odd-status">ابحث عن الرمز المختلف</p>
+    <div class="emoji-grid" id="odd-grid"></div>
+    <button class="action" id="odd-reset" style="background:var(--muted);">جولة جديدة</button>
+  </div>
+
+  <!-- GUESS WORD (Hangman style) -->
+  <div class="panel" id="panel-guessword">
+    <p class="small" id="gw-status">خمّن الكلمة قبل نفاد المحاولات (7)</p>
+    <div class="scramble-word" id="gw-display" style="font-size:1.6rem;letter-spacing:8px;"></div>
+    <input id="gw-input" type="text" maxlength="1" placeholder="حرف واحد">
+    <button class="action" id="gw-guess">جرّب الحرف</button>
+    <div class="small" id="gw-lives">المحاولات المتبقية: 7</div>
+    <button class="action hidden" id="gw-reset" style="background:var(--muted);">كلمة جديدة</button>
+  </div>
+</div>
+</div>
+
+<script>
+
+/* ---- Intro Screen ---- */
+document.getElementById('start-games').addEventListener('click', ()=>{
+  const intro=document.getElementById('intro-screen');
+  intro.classList.add('hide');
+  setTimeout(()=>intro.remove(),500);
+});
+/* ---- Guess the number ---- */
+let target = Math.floor(Math.random()*100)+1, tries=0, won=false;
+const gi=document.getElementById('guessInput'), gm=document.getElementById('msg'),
+      gt=document.getElementById('tries'), gb=document.getElementById('guessBtn'),
+      gr=document.getElementById('resetGuess');
+function doGuess(){
+  if(won) return;
+  const v=parseInt(gi.value);
+  if(isNaN(v)||v<1||v>100){ gm.textContent='أدخل رقمًا بين 1 و100'; return; }
+  tries++; gt.textContent='المحاولات: '+tries;
+  if(v===target){ gm.textContent='🎉 صح! الرقم '+target+' خلال '+tries+' محاولة'; won=true;
+    gb.classList.add('hidden'); gi.classList.add('hidden'); gr.classList.remove('hidden'); }
+  else if(v<target) gm.textContent='⬆️ أكبر من كده';
+  else gm.textContent='⬇️ أصغر من كده';
+  gi.value=''; gi.focus();
+}
+gb.addEventListener('click', doGuess);
+gi.addEventListener('keydown', e=>{if(e.key==='Enter') doGuess();});
+gr.addEventListener('click', ()=>{
+  target=Math.floor(Math.random()*100)+1; tries=0; won=false;
+  gm.textContent=''; gt.textContent='المحاولات: 0';
+  gb.classList.remove('hidden'); gi.classList.remove('hidden'); gr.classList.add('hidden');
+});
+
+/* ---- Rock Paper Scissors ---- */
+let wins=0, losses=0;
+const rmsg=document.getElementById('rps-msg'), rscore=document.getElementById('rps-score');
+const names={rock:'حجر 🪨',paper:'ورقة 📄',scissors:'مقص ✂️'};
+document.querySelectorAll('.choice').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const you=el.dataset.c, opts=['rock','paper','scissors'];
+    const cpu=opts[Math.floor(Math.random()*3)];
+    let res;
+    if(you===cpu) res='تعادل 🤝';
+    else if((you==='rock'&&cpu==='scissors')||(you==='paper'&&cpu==='rock')||(you==='scissors'&&cpu==='paper')){
+      res='فزت! 🎉'; wins++;
+    } else { res='خسرت 😅'; losses++; }
+    rmsg.textContent='أنت: '+names[you]+' — الكمبيوتر: '+names[cpu]+' → '+res;
+    rscore.textContent='أنت '+wins+' - '+losses+' الكمبيوتر';
+  });
+});
+
+/* ---- Quiz ---- */
+const questions=[
+  {q:'ما هي عاصمة اليابان؟',opts:['سيول','طوكيو','بكين','بانكوك'],a:1},
+  {q:'كم عدد قارات العالم؟',opts:['5','6','7','8'],a:2},
+  {q:'ما هو أكبر كوكب في المجموعة الشمسية؟',opts:['الأرض','زحل','المشتري','المريخ'],a:2},
+  {q:'من مؤلف رواية "مئة عام من العزلة"؟',opts:['نجيب محفوظ','غابرييل غارسيا ماركيز','باولو كويلو','خورخي بورخيس'],a:1},
+  {q:'ما هي أسرع حيوان بري؟',opts:['الأسد','الفهد الصياد','النمر','الحصان'],a:1}
+];
+let qi=0, score=0, answered=false;
+const qProg=document.getElementById('quiz-progress'), qQ=document.getElementById('quiz-q'),
+      qOpts=document.getElementById('quiz-opts'), qMsg=document.getElementById('quiz-msg'),
+      qRestart=document.getElementById('quiz-restart');
+function renderQuiz(){
+  answered=false; qMsg.textContent='';
+  qProg.textContent='السؤال '+(qi+1)+' من '+questions.length;
+  const cur=questions[qi];
+  qQ.textContent=cur.q;
+  qOpts.innerHTML='';
+  cur.opts.forEach((opt,idx)=>{
+    const b=document.createElement('button');
+    b.className='opt'; b.textContent=opt;
+    b.addEventListener('click', ()=>{
+      if(answered) return;
+      answered=true;
+      const all=qOpts.querySelectorAll('.opt');
+      if(idx===cur.a){ b.classList.add('correct'); score++; qMsg.textContent='✅ إجابة صحيحة!'; }
+      else { b.classList.add('wrong'); all[cur.a].classList.add('correct'); qMsg.textContent='❌ إجابة خاطئة'; }
+      setTimeout(()=>{
+        qi++;
+        if(qi<questions.length) renderQuiz();
+        else {
+          qQ.textContent='انتهى الكويز! نتيجتك: '+score+'/'+questions.length;
+          qOpts.innerHTML=''; qMsg.textContent=''; qProg.textContent='';
+          qRestart.classList.remove('hidden');
+        }
+      }, 1100);
+    });
+    qOpts.appendChild(b);
+  });
+}
+qRestart.addEventListener('click', ()=>{ qi=0; score=0; qRestart.classList.add('hidden'); renderQuiz(); });
+renderQuiz();
+
+/* ---- Tic Tac Toe ---- */
+let xoBoard=Array(9).fill(''), xoOver=false;
+const xoGrid=document.getElementById('xo-grid'), xoStatus=document.getElementById('xo-status');
+function xoRender(){
+  xoGrid.innerHTML='';
+  xoBoard.forEach((v,i)=>{
+    const c=document.createElement('div'); c.className='xo-cell'; c.textContent=v==='X'?'✖️':v==='O'?'⭕':'';
+    c.addEventListener('click', ()=>xoMove(i));
+    xoGrid.appendChild(c);
+  });
+}
+function xoWinner(b){
+  const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const l of lines){ if(b[l[0]]&&b[l[0]]===b[l[1]]&&b[l[1]]===b[l[2]]) return b[l[0]]; }
+  return b.every(x=>x)?'draw':null;
+}
+function xoMove(i){
+  if(xoOver||xoBoard[i]) return;
+  xoBoard[i]='X';
+  let w=xoWinner(xoBoard);
+  if(!w){
+    const empty=xoBoard.map((v,idx)=>v?null:idx).filter(x=>x!==null);
+    const pick=empty[Math.floor(Math.random()*empty.length)];
+    if(pick!==undefined) xoBoard[pick]='O';
+    w=xoWinner(xoBoard);
+  }
+  xoRender();
+  if(w){ xoOver=true; xoStatus.textContent = w==='draw'?'🤝 تعادل!' : (w==='X'?'🎉 فزت!':'😅 خسرت!'); }
+  else xoStatus.textContent='دورك (✖️)';
+}
+document.getElementById('xo-reset').addEventListener('click', ()=>{ xoBoard=Array(9).fill(''); xoOver=false; xoStatus.textContent='دورك (✖️)'; xoRender(); });
+xoRender();
+
+/* ---- Memory Match ---- */
+const memEmojis=['🍎','🍌','🍇','🍉','🍓','🍒','🍍','🥝'];
+let memCards=[], memFlipped=[], memMatched=[], memLock=false;
+const memGrid=document.getElementById('mem-grid'), memStatus=document.getElementById('mem-status');
+function memSetup(){
+  memCards=[...memEmojis,...memEmojis].sort(()=>Math.random()-0.5);
+  memFlipped=[]; memMatched=[]; memLock=false;
+  memStatus.textContent='طابق الأزواج المتشابهة';
+  memGrid.innerHTML='';
+  memCards.forEach((emo,i)=>{
+    const c=document.createElement('div'); c.className='mem-cell'; c.textContent='❓';
+    c.addEventListener('click', ()=>memFlip(i,c));
+    memGrid.appendChild(c);
+  });
+}
+function memFlip(i,el){
+  if(memLock||memMatched.includes(i)||memFlipped.some(f=>f.i===i)) return;
+  el.textContent=memCards[i];
+  memFlipped.push({i,el});
+  if(memFlipped.length===2){
+    memLock=true;
+    const [a,b]=memFlipped;
+    if(memCards[a.i]===memCards[b.i]){
+      memMatched.push(a.i,b.i); a.el.classList.add('matched'); b.el.classList.add('matched');
+      memFlipped=[]; memLock=false;
+      if(memMatched.length===memCards.length) memStatus.textContent='🎉 أحسنت! طابقت كل الأزواج';
+    } else {
+      setTimeout(()=>{ a.el.textContent='❓'; b.el.textContent='❓'; memFlipped=[]; memLock=false; }, 700);
+    }
+  }
+}
+document.getElementById('mem-reset').addEventListener('click', memSetup);
+memSetup();
+
+/* ---- Word Scramble ---- */
+const scrambleWords=['برمجة','قمر','مدرسة','حديقة','سيارة','كتاب','شمس','بحر'];
+let scrambleCurrent='';
+function scrambleShuffle(w){
+  let arr=w.split('');
+  do{ arr.sort(()=>Math.random()-0.5); } while(arr.join('')===w && w.length>1);
+  return arr.join('');
+}
+function scrambleNew(){
+  scrambleCurrent = scrambleWords[Math.floor(Math.random()*scrambleWords.length)];
+  document.getElementById('scramble-word').textContent = scrambleShuffle(scrambleCurrent);
+  document.getElementById('scramble-input').value='';
+  document.getElementById('scramble-msg').textContent='';
+}
+document.getElementById('scramble-check').addEventListener('click', ()=>{
+  const v=document.getElementById('scramble-input').value.trim();
+  const m=document.getElementById('scramble-msg');
+  if(v===scrambleCurrent){ m.textContent='✅ صحيح! كلمة جديدة قادمة...'; m.style.color='var(--accent)'; setTimeout(scrambleNew,1200); }
+  else { m.textContent='❌ حاول مرة أخرى'; m.style.color='#c25b5b'; }
+});
+scrambleNew();
+
+/* ---- Simon Says ---- */
+let simonSeq=[], simonUser=[], simonLevel=0, simonPlaying=false;
+const simonCells=document.querySelectorAll('.simon-cell'), simonStatus=document.getElementById('simon-status');
+function simonFlash(idx){
+  const cell=[...simonCells].find(c=>c.dataset.c==String(idx));
+  cell.classList.add('lit'); setTimeout(()=>cell.classList.remove('lit'), 400);
+}
+async function simonPlaySeq(){
+  simonPlaying=false;
+  for(const idx of simonSeq){
+    await new Promise(r=>setTimeout(r,500));
+    simonFlash(idx);
+  }
+  simonPlaying=true; simonUser=[];
+  simonStatus.textContent='دورك! كرر التسلسل ('+simonSeq.length+')';
+}
+document.getElementById('simon-start').addEventListener('click', ()=>{
+  simonSeq=[Math.floor(Math.random()*4)]; simonLevel=1; simonUser=[];
+  simonStatus.textContent='راقب التسلسل...';
+  simonPlaySeq();
+});
+simonCells.forEach(cell=>{
+  cell.addEventListener('click', ()=>{
+    if(!simonPlaying) return;
+    const idx=parseInt(cell.dataset.c);
+    simonFlash(idx);
+    simonUser.push(idx);
+    const pos=simonUser.length-1;
+    if(simonUser[pos]!==simonSeq[pos]){
+      simonPlaying=false; simonStatus.textContent='💥 خسرت! وصلت للمستوى '+simonLevel+'. اضغط ابدأ من جديد';
+      return;
+    }
+    if(simonUser.length===simonSeq.length){
+      simonLevel++;
+      simonStatus.textContent='🎉 صح! استعد للمستوى التالي...';
+      setTimeout(()=>{ simonSeq.push(Math.floor(Math.random()*4)); simonPlaySeq(); }, 900);
+    }
+  });
+});
+
+/* ---- Reaction Test ---- */
+const reactBox=document.getElementById('reaction-box'), reactResult=document.getElementById('react-result');
+let reactState='idle', reactTimer=null, reactStart=0;
+reactBox.addEventListener('click', ()=>{
+  if(reactState==='idle'){
+    reactState='waiting'; reactBox.style.background='#c25b5b'; reactBox.textContent='استنى اللون الأخضر...';
+    const delay=1000+Math.random()*2500;
+    reactTimer=setTimeout(()=>{
+      reactState='go'; reactBox.style.background='#4caf7d'; reactBox.textContent='دوس دلوقتي!';
+      reactStart=Date.now();
+    }, delay);
+  } else if(reactState==='waiting'){
+    clearTimeout(reactTimer);
+    reactState='idle'; reactBox.style.background='var(--border)'; reactBox.textContent='اضغط للبدء';
+    reactResult.textContent='⚠️ ضغطت بدري! حاول تاني';
+  } else if(reactState==='go'){
+    const ms=Date.now()-reactStart;
+    reactResult.textContent='⏱️ زمن رد فعلك: '+ms+' مللي ثانية';
+    reactState='idle'; reactBox.style.background='var(--border)'; reactBox.textContent='اضغط للبدء';
+  }
+});
+
+/* ---- Snake ---- */
+const snCanvas=document.getElementById('snake-canvas'), snCtx=snCanvas.getContext('2d');
+const snStatus=document.getElementById('snake-status');
+const SN_SIZE=12, SN_CELL=snCanvas.width/SN_SIZE;
+let snSnake, snDir, snNextDir, snFood, snScore, snAlive, snLoop;
+function snPlaceFood(){
+  do{ snFood={x:Math.floor(Math.random()*SN_SIZE),y:Math.floor(Math.random()*SN_SIZE)}; }
+  while(snSnake.some(s=>s.x===snFood.x&&s.y===snFood.y));
+}
+function snInit(){
+  snSnake=[{x:6,y:6},{x:5,y:6},{x:4,y:6}]; snDir={x:1,y:0}; snNextDir={x:1,y:0};
+  snScore=0; snAlive=true; snStatus.textContent='النقاط: 0';
+  snPlaceFood();
+  clearInterval(snLoop); snLoop=setInterval(snTick,180);
+  snDraw();
+}
+function snTick(){
+  if(!snAlive) return;
+  snDir=snNextDir;
+  const head={x:snSnake[0].x+snDir.x, y:snSnake[0].y+snDir.y};
+  if(head.x<0||head.y<0||head.x>=SN_SIZE||head.y>=SN_SIZE||snSnake.some(s=>s.x===head.x&&s.y===head.y)){
+    snAlive=false; clearInterval(snLoop); snStatus.textContent='💥 انتهت! النقاط: '+snScore; return;
+  }
+  snSnake.unshift(head);
+  if(head.x===snFood.x&&head.y===snFood.y){ snScore++; snStatus.textContent='النقاط: '+snScore; snPlaceFood(); }
+  else snSnake.pop();
+  snDraw();
+}
+function snDraw(){
+  snCtx.fillStyle=getComputedStyle(document.body).getPropertyValue('--bg'); snCtx.fillRect(0,0,snCanvas.width,snCanvas.height);
+  snCtx.fillStyle=getComputedStyle(document.body).getPropertyValue('--accent');
+  snSnake.forEach(s=>snCtx.fillRect(s.x*SN_CELL,s.y*SN_CELL,SN_CELL-2,SN_CELL-2));
+  snCtx.fillStyle='#4caf7d';
+  snCtx.fillRect(snFood.x*SN_CELL,snFood.y*SN_CELL,SN_CELL-2,SN_CELL-2);
+}
+function snSetDir(d){
+  const map={up:{x:0,y:-1},down:{x:0,y:1},left:{x:-1,y:0},right:{x:1,y:0}};
+  const nd=map[d];
+  if(nd.x===-snDir.x&&nd.y===-snDir.y) return;
+  snNextDir=nd;
+}
+document.querySelectorAll('.snake-btn').forEach(b=>b.addEventListener('click',()=>snSetDir(b.dataset.d)));
+document.addEventListener('keydown', e=>{
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+  if(map[e.key]) snSetDir(map[e.key]);
+});
+document.getElementById('snake-reset').addEventListener('click', snInit);
+snInit();
+
+/* ---- Whack a Mole ---- */
+const moleGrid=document.getElementById('mole-grid'), moleStatus=document.getElementById('mole-status');
+let moleHoles=[], moleScore=0, moleTime=20, moleTimer=null, moleUpTimer=null, molePlaying=false;
+function moleSetup(){
+  moleGrid.innerHTML='';
+  moleHoles=[];
+  for(let i=0;i<9;i++){
+    const h=document.createElement('div'); h.className='mole-hole';
+    h.addEventListener('click', ()=>{
+      if(!molePlaying||!h.classList.contains('up')) return;
+      h.classList.remove('up'); h.textContent='';
+      moleScore++; moleStatus.textContent='الوقت: '+moleTime+' | النقاط: '+moleScore;
+    });
+    moleGrid.appendChild(h); moleHoles.push(h);
+  }
+}
+function molePopRandom(){
+  moleHoles.forEach(h=>{h.classList.remove('up'); h.textContent='';});
+  const h=moleHoles[Math.floor(Math.random()*moleHoles.length)];
+  h.classList.add('up'); h.textContent='🐹';
+}
+document.getElementById('mole-start').addEventListener('click', ()=>{
+  moleScore=0; moleTime=20; molePlaying=true;
+  moleStatus.textContent='الوقت: '+moleTime+' | النقاط: 0';
+  clearInterval(moleTimer); clearInterval(moleUpTimer);
+  moleUpTimer=setInterval(molePopRandom, 700);
+  moleTimer=setInterval(()=>{
+    moleTime--; moleStatus.textContent='الوقت: '+moleTime+' | النقاط: '+moleScore;
+    if(moleTime<=0){
+      clearInterval(moleTimer); clearInterval(moleUpTimer); molePlaying=false;
+      moleHoles.forEach(h=>{h.classList.remove('up'); h.textContent='';});
+      moleStatus.textContent='🏁 انتهى! النقاط النهائية: '+moleScore;
+    }
+  },1000);
+});
+moleSetup();
+
+/* ---- Quick Math ---- */
+const mathProb=document.getElementById('math-problem'), mathStatus=document.getElementById('math-status'),
+      mathInput=document.getElementById('math-input');
+let mathAnswer=0, mathScore=0, mathTime=30, mathTimer=null, mathPlaying=false;
+function mathNew(){
+  const a=Math.floor(Math.random()*20)+1, b=Math.floor(Math.random()*20)+1;
+  const ops=['+','-','×']; const op=ops[Math.floor(Math.random()*3)];
+  mathAnswer = op==='+' ? a+b : op==='-' ? a-b : a*b;
+  mathProb.textContent = a+' '+op+' '+b+' = ?';
+  mathInput.value='';
+}
+mathInput.addEventListener('keydown', e=>{
+  if(e.key==='Enter' && mathPlaying){
+    if(parseInt(mathInput.value)===mathAnswer){ mathScore++; mathStatus.textContent='الوقت: '+mathTime+' | النقاط: '+mathScore; }
+    mathNew();
+  }
+});
+document.getElementById('math-start').addEventListener('click', ()=>{
+  mathScore=0; mathTime=30; mathPlaying=true;
+  mathStatus.textContent='الوقت: '+mathTime+' | النقاط: 0';
+  mathNew(); mathInput.focus();
+  clearInterval(mathTimer);
+  mathTimer=setInterval(()=>{
+    mathTime--; mathStatus.textContent='الوقت: '+mathTime+' | النقاط: '+mathScore;
+    if(mathTime<=0){ clearInterval(mathTimer); mathPlaying=false; mathProb.textContent='🏁 انتهى! النقاط: '+mathScore; }
+  },1000);
+});
+
+/* ---- Wheel ---- */
+const wheelDisc=document.getElementById('wheel-disc'), wheelInput=document.getElementById('wheel-input'),
+      wheelResult=document.getElementById('wheel-result');
+let wheelRot=0;
+document.getElementById('wheel-spin').addEventListener('click', ()=>{
+  const items=wheelInput.value.split(',').map(s=>s.trim()).filter(Boolean);
+  if(items.length<2){ wheelResult.textContent='أدخل خيارين على الأقل مفصولين بفاصلة'; return; }
+  const pick=items[Math.floor(Math.random()*items.length)];
+  wheelRot += 1080 + Math.floor(Math.random()*360);
+  wheelDisc.style.transform='rotate('+wheelRot+'deg)';
+  wheelResult.textContent='';
+  setTimeout(()=>{ wheelDisc.textContent=pick; wheelResult.textContent='🎉 النتيجة: '+pick; }, 3000);
+});
+
+/* ---- Dice War ---- */
+let dYou=0, dCpu=0;
+document.getElementById('dice-roll').addEventListener('click', ()=>{
+  const y=Math.floor(Math.random()*6)+1, c=Math.floor(Math.random()*6)+1;
+  const faces=['⚀','⚁','⚂','⚃','⚄','⚅'];
+  document.getElementById('dice-you').textContent=faces[y-1];
+  document.getElementById('dice-cpu').textContent=faces[c-1];
+  const dm=document.getElementById('dice-msg');
+  if(y>c){ dYou++; dm.textContent='فزت بهذه الجولة! ('+y+' مقابل '+c+')'; }
+  else if(c>y){ dCpu++; dm.textContent='خسرت هذه الجولة ('+y+' مقابل '+c+')'; }
+  else dm.textContent='تعادل! ('+y+' مقابل '+c+')';
+  document.getElementById('dice-score').textContent='أنت '+dYou+' - '+dCpu+' الكمبيوتر';
+});
+
+/* ---- Bubble Pop ---- */
+const bubArea=document.getElementById('bubble-area'), bubStatus=document.getElementById('bubble-status');
+let bubScore=0, bubTime=20, bubTimer=null, bubSpawner=null, bubPlaying=false;
+function bubSpawn(){
+  const b=document.createElement('div'); b.className='bubble';
+  const size=28+Math.random()*22;
+  b.style.width=size+'px'; b.style.height=size+'px';
+  b.style.left=Math.random()*(bubArea.clientWidth-size)+'px';
+  b.style.top=Math.random()*(bubArea.clientHeight-size)+'px';
+  b.addEventListener('click', ()=>{ if(!bubPlaying) return; bubScore++; bubStatus.textContent='الوقت: '+bubTime+' | النقاط: '+bubScore; b.remove(); });
+  bubArea.appendChild(b);
+  setTimeout(()=>b.remove(), 900);
+}
+document.getElementById('bubble-start').addEventListener('click', ()=>{
+  bubScore=0; bubTime=20; bubPlaying=true; bubArea.innerHTML='';
+  bubStatus.textContent='الوقت: '+bubTime+' | النقاط: 0';
+  clearInterval(bubTimer); clearInterval(bubSpawner);
+  bubSpawner=setInterval(bubSpawn, 500);
+  bubTimer=setInterval(()=>{
+    bubTime--; bubStatus.textContent='الوقت: '+bubTime+' | النقاط: '+bubScore;
+    if(bubTime<=0){ clearInterval(bubTimer); clearInterval(bubSpawner); bubPlaying=false; bubArea.innerHTML='';
+      bubStatus.textContent='🏁 انتهى! النقاط النهائية: '+bubScore; }
+  },1000);
+});
+
+/* ---- Typing Speed ---- */
+const typingSentences=['البرمجة فن وعلم في آن واحد','القراءة غذاء العقل والروح','النجاح يحتاج صبرًا ومثابرة','الوقت أثمن من الذهب','التعلم رحلة لا تنتهي'];
+let typingStart=0, typingActive=false, typingCurrent='';
+function typingNew(){
+  typingCurrent = typingSentences[Math.floor(Math.random()*typingSentences.length)];
+  document.getElementById('typing-target').textContent = typingCurrent;
+  document.getElementById('typing-input').value=''; document.getElementById('typing-result').textContent='';
+  typingActive=false;
+}
+document.getElementById('typing-input').addEventListener('input', e=>{
+  if(!typingActive){ typingActive=true; typingStart=Date.now(); }
+  if(e.target.value===typingCurrent){
+    const secs=(Date.now()-typingStart)/1000;
+    const words=typingCurrent.split(' ').length;
+    const wpm=Math.round(words/(secs/60));
+    document.getElementById('typing-result').textContent='⏱️ '+secs.toFixed(1)+' ثانية — '+wpm+' كلمة/دقيقة';
+    typingActive=false;
+  }
+});
+document.getElementById('typing-reset').addEventListener('click', typingNew);
+typingNew();
+
+/* ---- Find Number Grid ---- */
+const ngGrid=document.getElementById('numgrid-grid'), ngStatus=document.getElementById('numgrid-status');
+let ngNext=1, ngStartTime=0;
+function ngSetup(){
+  ngNext=1; ngStatus.textContent='اضغط على الأرقام بالترتيب من 1 إلى 20';
+  const nums=Array.from({length:20},(_,i)=>i+1).sort(()=>Math.random()-0.5);
+  ngGrid.innerHTML='';
+  nums.forEach(n=>{
+    const c=document.createElement('div'); c.className='numcell'; c.textContent=n;
+    c.addEventListener('click', ()=>{
+      if(parseInt(c.textContent)!==ngNext) return;
+      c.classList.add('found');
+      if(ngNext===1) ngStartTime=Date.now();
+      ngNext++;
+      if(ngNext>20){ const secs=((Date.now()-ngStartTime)/1000).toFixed(1); ngStatus.textContent='🎉 خلصت في '+secs+' ثانية!'; }
+    });
+    ngGrid.appendChild(c);
+  });
+}
+document.getElementById('numgrid-reset').addEventListener('click', ngSetup);
+ngSetup();
+
+/* ---- Stroop Color Test ---- */
+const stroopColors=[{name:'أحمر',hex:'#c25b5b'},{name:'أخضر',hex:'#4caf7d'},{name:'أزرق',hex:'#5a8ee0'},{name:'أصفر',hex:'#e0c25a'}];
+let stroopScore=0, stroopAnswer='';
+const stroopWord=document.getElementById('stroop-word'), stroopOpts=document.getElementById('stroop-opts');
+function stroopNew(){
+  const word=stroopColors[Math.floor(Math.random()*4)], shown=stroopColors[Math.floor(Math.random()*4)];
+  stroopWord.textContent=word.name; stroopWord.style.color=shown.hex;
+  stroopAnswer=shown.name;
+  stroopOpts.innerHTML='';
+  stroopColors.forEach(c=>{
+    const b=document.createElement('div'); b.className='color-opt'; b.textContent=c.name;
+    b.addEventListener('click', ()=>{
+      if(c.name===stroopAnswer){ stroopScore++; document.getElementById('stroop-score').textContent='النقاط: '+stroopScore; }
+      else stroopScore=Math.max(0,stroopScore-1);
+      document.getElementById('stroop-score').textContent='النقاط: '+stroopScore;
+      stroopNew();
+    });
+    stroopOpts.appendChild(b);
+  });
+}
+stroopNew();
+
+/* ---- Higher or Lower ---- */
+let hlCurrent=Math.floor(Math.random()*100)+1, hlStreak=0;
+document.getElementById('hl-current').textContent=hlCurrent;
+function hlGuess(dir){
+  const next=Math.floor(Math.random()*100)+1;
+  const correct = dir==='higher' ? next>=hlCurrent : next<=hlCurrent;
+  const st=document.getElementById('hl-status');
+  if(correct){ hlStreak++; st.textContent='صح! السلسلة: '+hlStreak; }
+  else { st.textContent='خطأ! السلسلة انتهت عند '+hlStreak; hlStreak=0; }
+  hlCurrent=next;
+  document.getElementById('hl-current').textContent=hlCurrent;
+}
+document.getElementById('hl-higher').addEventListener('click', ()=>hlGuess('higher'));
+document.getElementById('hl-lower').addEventListener('click', ()=>hlGuess('lower'));
+
+/* ---- Tap Target ---- */
+const tapArea=document.getElementById('tap-area'), tapStatus=document.getElementById('tap-status');
+let tapScore=0, tapTime=15, tapTimer=null, tapMoveTimer=null, tapPlaying=false;
+function tapMove(){
+  let t=tapArea.querySelector('.tap-target');
+  if(!t){ t=document.createElement('div'); t.className='tap-target';
+    t.addEventListener('click', ()=>{ if(!tapPlaying) return; tapScore++; tapStatus.textContent='الوقت: '+tapTime+' | النقاط: '+tapScore; tapMove(); });
+    tapArea.appendChild(t);
+  }
+  t.style.left=Math.random()*(tapArea.clientWidth-70)+'px';
+  t.style.top=Math.random()*(tapArea.clientHeight-70)+'px';
+}
+document.getElementById('tap-start').addEventListener('click', ()=>{
+  tapScore=0; tapTime=15; tapPlaying=true; tapArea.innerHTML='';
+  tapStatus.textContent='الوقت: '+tapTime+' | النقاط: 0';
+  tapMove();
+  clearInterval(tapTimer);
+  tapTimer=setInterval(()=>{
+    tapTime--; tapStatus.textContent='الوقت: '+tapTime+' | النقاط: '+tapScore;
+    if(tapTime<=0){ clearInterval(tapTimer); tapPlaying=false; tapArea.innerHTML='';
+      tapStatus.textContent='🏁 انتهى! النقاط النهائية: '+tapScore; }
+  },1000);
+});
+
+/* ---- Odd One Out ---- */
+const oddSets=[['🍎','🍏'],['⚽','🏀'],['🐶','🐺'],['🌕','🌑'],['🟢','🔵']];
+const oddGrid=document.getElementById('odd-grid'), oddStatus=document.getElementById('odd-status');
+function oddSetup(){
+  const set=oddSets[Math.floor(Math.random()*oddSets.length)];
+  const oddIdx=Math.floor(Math.random()*16);
+  oddStatus.textContent='ابحث عن الرمز المختلف';
+  oddGrid.innerHTML='';
+  for(let i=0;i<16;i++){
+    const c=document.createElement('div'); c.className='emoji-cell';
+    c.textContent = i===oddIdx ? set[1] : set[0];
+    c.addEventListener('click', ()=>{
+      if(i===oddIdx){ c.classList.add('odd-found'); oddStatus.textContent='🎉 صح! لقيته'; }
+      else oddStatus.textContent='مش هو ده، جرب تاني';
+    });
+    oddGrid.appendChild(c);
+  }
+}
+document.getElementById('odd-reset').addEventListener('click', oddSetup);
+oddSetup();
+
+/* ---- Guess Word (Hangman) ---- */
+const gwWords=['حاسوب','رياضة','موسيقى','هاتف','مطعم','جامعة','مكتبة','طائرة'];
+let gwWord='', gwGuessed=[], gwLives=7;
+function gwRender(){
+  document.getElementById('gw-display').textContent = gwWord.split('').map(ch=>gwGuessed.includes(ch)?ch:'_').join(' ');
+  document.getElementById('gw-lives').textContent='المحاولات المتبقية: '+gwLives;
+}
+function gwSetup(){
+  gwWord = gwWords[Math.floor(Math.random()*gwWords.length)];
+  gwGuessed=[]; gwLives=7;
+  document.getElementById('gw-status').textContent='خمّن الكلمة قبل نفاد المحاولات (7)';
+  document.getElementById('gw-input').classList.remove('hidden');
+  document.getElementById('gw-guess').classList.remove('hidden');
+  document.getElementById('gw-reset').classList.add('hidden');
+  gwRender();
+}
+document.getElementById('gw-guess').addEventListener('click', ()=>{
+  const inp=document.getElementById('gw-input');
+  const ch=inp.value.trim();
+  inp.value='';
+  if(!ch||gwGuessed.includes(ch)) return;
+  gwGuessed.push(ch);
+  if(!gwWord.includes(ch)) gwLives--;
+  gwRender();
+  if(gwWord.split('').every(c=>gwGuessed.includes(c))){
+    document.getElementById('gw-status').textContent='🎉 فزت! الكلمة: '+gwWord;
+    document.getElementById('gw-input').classList.add('hidden'); document.getElementById('gw-guess').classList.add('hidden');
+    document.getElementById('gw-reset').classList.remove('hidden');
+  } else if(gwLives<=0){
+    document.getElementById('gw-status').textContent='💥 خسرت! الكلمة كانت: '+gwWord;
+    document.getElementById('gw-input').classList.add('hidden'); document.getElementById('gw-guess').classList.add('hidden');
+    document.getElementById('gw-reset').classList.remove('hidden');
+  }
+});
+document.getElementById('gw-reset').addEventListener('click', gwSetup);
+gwSetup();
+
+/* ---- Tabs ---- */
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
+</script>
+</body>
+</html>
